@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="ja">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Intranet Web Speed Test</title>
+	<style>
+		@keyframes float1 {
+			0%, 100% { transform: translate(0, 0) scale(1); }
+			33% { transform: translate(30px, -40px) scale(1.05); }
+			66% { transform: translate(-20px, 20px) scale(0.95); }
+		}
+		@keyframes float2 {
+			0%, 100% { transform: translate(0, 0) scale(1); }
+			33% { transform: translate(-40px, 30px) scale(1.08); }
+			66% { transform: translate(25px, -15px) scale(0.92); }
+		}
+		@keyframes float3 {
+			0%, 100% { transform: translate(0, 0) scale(1); }
+			50% { transform: translate(20px, 30px) scale(1.03); }
+		}
+		@keyframes pulse-ring {
+			0% { box-shadow: 0 0 0 0 rgba(103, 69, 152, 0.35); }
+			70% { box-shadow: 0 0 0 14px rgba(103, 69, 152, 0); }
+			100% { box-shadow: 0 0 0 0 rgba(103, 69, 152, 0); }
+		}
+		@keyframes shimmer {
+			0% { background-position: -200% center; }
+			100% { background-position: 200% center; }
+		}
+		@keyframes fadeInUp {
+			from { opacity: 0; transform: translateY(16px); }
+			to   { opacity: 1; transform: translateY(0); }
+		}
+
+		:root {
+			--primary: #674598;
+			--primary-light: #8b6bbf;
+			--primary-dark: #4e2f7a;
+			--accent: #a78bfa;
+			--accent2: #c084fc;
+			--border: rgba(103, 69, 152, 0.08);
+			--border-hover: rgba(103, 69, 152, 0.18);
+			--card-bg: rgba(255, 255, 255, 0.6);
+			--card-bg-solid: rgba(255, 255, 255, 0.85);
+			--shadow-1: 0 4px 24px -6px rgba(103, 69, 152, .08), 0 1px 3px rgba(0,0,0,.04);
+			--shadow-2: 0 12px 40px -8px rgba(103, 69, 152, .16), 0 4px 12px rgba(0,0,0,.06);
+			--shadow-glow: 0 0 40px -10px rgba(103, 69, 152, .25);
+			--text: #1a1235;
+			--muted: #7c7093;
+			--ok: #059669;
+			--warn: #d97706;
+			--error: #dc2626;
+			--radius: 20px;
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			margin: 0;
+			font-family: "Segoe UI", "Yu Gothic UI", system-ui, sans-serif;
+			color: var(--text);
+			background: #f7f4fb;
+			min-height: 100vh;
+			display: grid;
+			place-items: center;
+			padding: 24px;
+			position: relative;
+			overflow-x: hidden;
+		}
+
+		body::before {
+			content: "";
+			position: fixed;
+			inset: 0;
+			background:
+				radial-gradient(ellipse 60% 50% at 15% 20%, rgba(167, 139, 250, .18) 0%, transparent 70%),
+				radial-gradient(ellipse 50% 60% at 85% 75%, rgba(192, 132, 252, .14) 0%, transparent 70%),
+				radial-gradient(ellipse 40% 40% at 50% 50%, rgba(103, 69, 152, .06) 0%, transparent 60%);
+			pointer-events: none;
+			z-index: 0;
+		}
+
+		.bg-orb {
+			position: fixed;
+			border-radius: 50%;
+			filter: blur(80px);
+			opacity: .45;
+			pointer-events: none;
+			z-index: 0;
+		}
+		.bg-orb--1 {
+			width: 420px; height: 420px;
+			background: radial-gradient(circle, rgba(103,69,152,.3), transparent 70%);
+			top: -10%; left: -5%;
+			animation: float1 20s ease-in-out infinite;
+		}
+		.bg-orb--2 {
+			width: 350px; height: 350px;
+			background: radial-gradient(circle, rgba(167,139,250,.25), transparent 70%);
+			bottom: -8%; right: -3%;
+			animation: float2 24s ease-in-out infinite;
+		}
+		.bg-orb--3 {
+			width: 250px; height: 250px;
+			background: radial-gradient(circle, rgba(192,132,252,.2), transparent 70%);
+			top: 40%; right: 20%;
+			animation: float3 18s ease-in-out infinite;
+		}
+
+		.app {
+			position: relative;
+			z-index: 1;
+			width: min(920px, 100%);
+			background: var(--card-bg-solid);
+			backdrop-filter: blur(24px) saturate(1.4);
+			-webkit-backdrop-filter: blur(24px) saturate(1.4);
+			border: 1px solid var(--border);
+			border-radius: 28px;
+			padding: 36px 32px;
+			box-shadow: var(--shadow-1);
+			animation: fadeInUp .5s ease-out both;
+		}
+
+		.app::before {
+			content: "";
+			position: absolute;
+			inset: -1px;
+			border-radius: 29px;
+			padding: 1px;
+			background: linear-gradient(135deg, rgba(103,69,152,.15), transparent 40%, transparent 60%, rgba(167,139,250,.12));
+			-webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+			mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+			-webkit-mask-composite: xor;
+			mask-composite: exclude;
+			pointer-events: none;
+		}
+
+		h1 {
+			margin: 0;
+			font-size: clamp(20px, 2.6vw, 28px);
+			font-weight: 800;
+			letter-spacing: -0.2px;
+			background: linear-gradient(135deg, var(--primary-dark), var(--primary), var(--accent));
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+		}
+
+		.sub {
+			margin-top: 6px;
+			color: var(--muted);
+			font-size: 13px;
+			letter-spacing: .3px;
+		}
+
+		.meter {
+			margin-top: 32px;
+			display: grid;
+			gap: 8px;
+			place-items: center;
+			text-align: center;
+			position: relative;
+		}
+
+		.meter::before {
+			content: "";
+			position: absolute;
+			width: 220px; height: 220px;
+			border-radius: 50%;
+			background: radial-gradient(circle, rgba(103,69,152,.06) 0%, transparent 70%);
+			top: 50%; left: 50%;
+			transform: translate(-50%, -50%);
+			pointer-events: none;
+		}
+
+		.speed {
+			font-size: clamp(64px, 13vw, 120px);
+			line-height: 1;
+			font-weight: 800;
+			letter-spacing: -3px;
+			background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 50%, var(--accent2) 100%);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+			font-variant-numeric: tabular-nums;
+			filter: drop-shadow(0 2px 12px rgba(103,69,152,.15));
+			position: relative;
+			z-index: 1;
+		}
+
+		.speed.measuring {
+			background: linear-gradient(90deg, var(--primary), var(--accent2), var(--primary));
+			background-size: 200% auto;
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+			animation: shimmer 2s linear infinite;
+		}
+
+		.unit {
+			margin-top: -4px;
+			font-size: 13px;
+			font-weight: 500;
+			color: var(--muted);
+			letter-spacing: 1.5px;
+			text-transform: uppercase;
+		}
+
+		.status {
+			margin-top: 8px;
+			font-size: 13px;
+			font-weight: 500;
+			color: var(--muted);
+			min-height: 20px;
+			letter-spacing: .2px;
+		}
+
+		.controls {
+			margin-top: 24px;
+			display: flex;
+			gap: 12px;
+			justify-content: center;
+			flex-wrap: wrap;
+		}
+
+		button {
+			border: 0;
+			border-radius: 14px;
+			padding: 12px 28px;
+			font-size: 14px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: all .2s cubic-bezier(.4,0,.2,1);
+			letter-spacing: .3px;
+		}
+
+		button:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+		button:active { transform: translateY(0) scale(.98); }
+		button:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; transform: none; }
+
+		#startBtn {
+			background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+			color: #fff;
+			box-shadow: 0 4px 20px -4px rgba(103,69,152,.4);
+			position: relative;
+		}
+		#startBtn:not(:disabled):hover {
+			box-shadow: 0 8px 30px -4px rgba(103,69,152,.5);
+		}
+		#startBtn.running {
+			animation: pulse-ring 2s ease-out infinite;
+		}
+
+		#stopBtn {
+			background: rgba(103, 69, 152, .06);
+			color: var(--primary);
+			border: 1px solid rgba(103, 69, 152, .15);
+			backdrop-filter: blur(8px);
+		}
+		#stopBtn:not(:disabled):hover {
+			background: rgba(103, 69, 152, .1);
+			border-color: rgba(103, 69, 152, .25);
+		}
+
+		.cards {
+			margin-top: 28px;
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 14px;
+		}
+
+		.card {
+			background: var(--card-bg);
+			backdrop-filter: blur(16px) saturate(1.2);
+			-webkit-backdrop-filter: blur(16px) saturate(1.2);
+			border: 1px solid var(--border);
+			border-radius: var(--radius);
+			padding: 18px 16px;
+			box-shadow: var(--shadow-1);
+			transition: all .25s cubic-bezier(.4,0,.2,1);
+			position: relative;
+			overflow: hidden;
+		}
+
+		.card::before {
+			content: "";
+			position: absolute;
+			top: 0; left: 0; right: 0;
+			height: 3px;
+			background: linear-gradient(90deg, var(--primary), var(--accent), var(--accent2));
+			opacity: 0;
+			transition: opacity .25s ease;
+		}
+
+		.card:hover {
+			box-shadow: var(--shadow-2);
+			border-color: var(--border-hover);
+			transform: translateY(-2px);
+		}
+		.card:hover::before { opacity: 1; }
+
+		.label {
+			font-size: 11px;
+			color: var(--muted);
+			text-transform: uppercase;
+			letter-spacing: 1.2px;
+			font-weight: 600;
+		}
+
+		.desc {
+			margin-top: 4px;
+			font-size: 11px;
+			color: var(--muted);
+			line-height: 1.5;
+			text-transform: none;
+			letter-spacing: 0;
+			opacity: .8;
+		}
+
+		.value {
+			margin-top: 10px;
+			font-size: 28px;
+			font-weight: 700;
+			color: var(--text);
+			font-variant-numeric: tabular-nums;
+		}
+
+		.badge {
+			display: inline-block;
+			margin-top: 8px;
+			padding: 3px 10px;
+			border-radius: 8px;
+			font-size: 11px;
+			font-weight: 600;
+			line-height: 1.6;
+		}
+
+		.badge.good {
+			background: color-mix(in srgb, var(--ok) 10%, transparent);
+			color: var(--ok);
+		}
+
+		.badge.fair {
+			background: color-mix(in srgb, var(--warn) 10%, transparent);
+			color: var(--warn);
+		}
+
+		.badge.poor {
+			background: color-mix(in srgb, var(--error) 10%, transparent);
+			color: var(--error);
+		}
+
+		.specs {
+			margin-top: 20px;
+			background: var(--card-bg);
+			backdrop-filter: blur(16px) saturate(1.2);
+			-webkit-backdrop-filter: blur(16px) saturate(1.2);
+			border: 1px solid var(--border);
+			border-radius: var(--radius);
+			padding: 18px 16px;
+			box-shadow: var(--shadow-1);
+		}
+
+		.specs-title {
+			font-size: 13px;
+			font-weight: 700;
+			color: var(--text);
+			margin-bottom: 12px;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.specs-title::before {
+			content: "";
+			display: inline-block;
+			width: 3px;
+			height: 14px;
+			border-radius: 2px;
+			background: linear-gradient(180deg, var(--primary), var(--accent));
+		}
+
+		.spec-grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 8px 16px;
+		}
+
+		.spec-item {
+			display: flex;
+			justify-content: space-between;
+			gap: 10px;
+			padding-bottom: 7px;
+			border-bottom: 1px solid rgba(103, 69, 152, .06);
+			font-size: 12px;
+			transition: background .15s ease;
+		}
+
+		.spec-item:hover {
+			background: rgba(103, 69, 152, .02);
+			border-radius: 4px;
+		}
+
+		.spec-key {
+			color: var(--muted);
+		}
+
+		.spec-hint {
+			font-size: 10px;
+			color: color-mix(in srgb, var(--muted) 65%, transparent);
+			margin-top: 2px;
+		}
+
+		.spec-val {
+			color: var(--text);
+			text-align: right;
+			font-variant-numeric: tabular-nums;
+			font-weight: 500;
+		}
+
+		.ok { color: var(--ok); }
+		.warn { color: var(--warn); }
+		.error { color: var(--error); }
+
+		.ref-table {
+			margin-top: 20px;
+			background: var(--card-bg);
+			backdrop-filter: blur(16px) saturate(1.2);
+			-webkit-backdrop-filter: blur(16px) saturate(1.2);
+			border: 1px solid var(--border);
+			border-radius: var(--radius);
+			padding: 18px 16px;
+			box-shadow: var(--shadow-1);
+		}
+
+		.ref-table table {
+			width: 100%;
+			border-collapse: collapse;
+			font-size: 12px;
+		}
+
+		.ref-table th,
+		.ref-table td {
+			padding: 8px 10px;
+			text-align: center;
+			border-bottom: 1px solid rgba(103, 69, 152, .06);
+		}
+
+		.ref-table th {
+			color: var(--muted);
+			font-weight: 600;
+			font-size: 11px;
+			text-transform: uppercase;
+			letter-spacing: .5px;
+		}
+
+		.ref-table th:first-child,
+		.ref-table td:first-child {
+			text-align: left;
+		}
+
+		.ref-table tbody tr {
+			transition: background .15s ease;
+		}
+		.ref-table tbody tr:hover {
+			background: rgba(103, 69, 152, .03);
+		}
+
+		.ref-table tbody tr:last-child td {
+			border-bottom: none;
+		}
+
+		.ref-table .dot {
+			display: inline-block;
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			margin-right: 5px;
+			vertical-align: middle;
+		}
+
+		.ref-table .dot-ok   { background: var(--ok); }
+		.ref-table .dot-warn  { background: var(--warn); }
+		.ref-table .dot-err   { background: var(--error); }
+
+		.ref-note {
+			margin-top: 14px;
+			padding: 12px 14px;
+			font-size: 11px;
+			line-height: 1.7;
+			color: var(--muted);
+			background: rgba(103, 69, 152, .03);
+			border-radius: 12px;
+			border: 1px solid rgba(103, 69, 152, .05);
+		}
+
+		.ref-note p {
+			margin: 0 0 6px;
+		}
+
+		.ref-note ul {
+			margin: 0 0 6px;
+			padding-left: 18px;
+		}
+
+		.ref-note a {
+			color: var(--primary);
+			text-decoration: none;
+			font-weight: 500;
+		}
+
+		.ref-note a:hover {
+			text-decoration: underline;
+		}
+
+		.guide {
+			margin-top: 18px;
+			border: 1px solid var(--border);
+			border-radius: 16px;
+			background: var(--card-bg);
+			backdrop-filter: blur(8px);
+			-webkit-backdrop-filter: blur(8px);
+			overflow: hidden;
+		}
+
+		.guide summary {
+			padding: 12px 16px;
+			cursor: pointer;
+			font-size: 13px;
+			font-weight: 600;
+			color: var(--text);
+			list-style: none;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.guide summary::-webkit-details-marker { display: none; }
+
+		.guide summary::before {
+			content: "▶";
+			font-size: 10px;
+			color: var(--primary);
+			transition: transform .2s ease;
+		}
+
+		.guide[open] summary::before {
+			transform: rotate(90deg);
+		}
+
+		.guide-body {
+			padding: 0 16px 16px;
+			font-size: 12.5px;
+			line-height: 1.75;
+			color: var(--text);
+		}
+
+		.guide-body h3 {
+			font-size: 13px;
+			font-weight: 700;
+			margin: 14px 0 6px;
+			color: var(--primary);
+		}
+
+		.guide-body h3:first-child {
+			margin-top: 0;
+		}
+
+		.guide-body pre {
+			background: #f8fafc;
+			border: 1px solid var(--border);
+			border-radius: 10px;
+			padding: 12px;
+			overflow-x: auto;
+			font-size: 11.5px;
+			line-height: 1.6;
+			color: #334155;
+			font-family: "Cascadia Code", "Consolas", monospace;
+		}
+
+		.guide-body ol,
+		.guide-body ul {
+			padding-left: 1.4em;
+			margin: 6px 0;
+		}
+
+		.guide-body li {
+			margin-bottom: 3px;
+		}
+
+		.guide-body code {
+			background: color-mix(in srgb, var(--primary) 8%, white);
+			padding: 1px 5px;
+			border-radius: 4px;
+			font-size: 11.5px;
+			font-family: "Cascadia Code", "Consolas", monospace;
+		}
+
+		.guide-body .tip {
+			margin-top: 10px;
+			padding: 10px 12px;
+			background: color-mix(in srgb, var(--primary) 6%, white);
+			border-left: 3px solid var(--primary);
+			border-radius: 0 8px 8px 0;
+			font-size: 12px;
+		}
+
+		.footer {
+			margin-top: 24px;
+			text-align: center;
+			font-size: 11px;
+			color: var(--muted);
+			opacity: .6;
+			letter-spacing: .5px;
+		}
+
+		@media (max-width: 720px) {
+			.cards { grid-template-columns: 1fr; }
+			.spec-grid { grid-template-columns: 1fr; }
+			.app { padding: 24px 18px; border-radius: 22px; }
+			.ref-table { overflow-x: auto; }
+		}
+	</style>
+</head>
+<body>
+	<div class="bg-orb bg-orb--1"></div>
+	<div class="bg-orb bg-orb--2"></div>
+	<div class="bg-orb bg-orb--3"></div>
+	<main class="app">
+		<h1>Intranet Web Speed Test</h1>
+		<p class="sub">XXXサーバーへの接続速度テスト。推奨はXXXMpsです</p>
+
+		<section class="meter" aria-live="polite">
+			<div id="speed" class="speed">0.00</div>
+			<div class="unit">Mbps (Download)</div>
+			<div id="status" class="status">待機中</div>
+		</section>
+
+		<section class="controls">
+			<button id="startBtn" type="button">計測開始</button>
+			<button id="stopBtn" type="button" disabled>停止</button>
+		</section>
+
+		<section class="cards">
+			<article class="card">
+				<div class="label">Download</div>
+				<div class="desc">サーバーからの受信速度。値が大きいほど高速です</div>
+				<div id="downloadFinal" class="value">-</div>
+				<div id="downloadBadge"></div>
+			</article>
+			<article class="card">
+				<div class="label">Latency (RTT)</div>
+				<div class="desc">サーバーとの往復応答時間。小さいほどレスポンスが良好です。</div>
+				<div id="latency" class="value">-</div>
+				<div id="latencyBadge"></div>
+			</article>
+			<article class="card">
+				<div class="label">Jitter</div>
+				<div class="desc">遅延のばらつき。小さいほど通信が安定しています。</div>
+				<div id="jitter" class="value">-</div>
+				<div id="jitterBadge"></div>
+			</article>
+		</section>
+
+		<section class="specs" aria-live="polite">
+			<div class="specs-title">接続クライアント情報</div>
+			<div class="spec-grid">
+				<div class="spec-item"><span class="spec-key">CPU 論理コア数</span><span id="specCpu" class="spec-val">-</span></div>
+				<div class="spec-item"><span class="spec-key">メモリ (RAM概算)</span><span id="specMemory" class="spec-val">-</span></div>
+				<div class="spec-item"><span class="spec-key">OS / Platform</span><span id="specPlatform" class="spec-val">-</span></div>
+				<div class="spec-item"><span class="spec-key">ブラウザ</span><span id="specBrowser" class="spec-val">-</span></div>
+				<div class="spec-item"><span class="spec-key">言語</span><span id="specLanguage" class="spec-val">-</span></div>
+				<div class="spec-item"><span class="spec-key">画面解像度</span><span id="specScreen" class="spec-val">-</span></div>
+				<div class="spec-item"><span class="spec-key">回線種別 (ブラウザ推定)</span><span id="specNetwork" class="spec-val">-</span></div>
+				<div class="spec-item"><span class="spec-key">タイムゾーン</span><span id="specTimezone" class="spec-val">-</span></div>
+			</div>
+			<div class="spec-hint" style="margin-top: 10px;">
+				※ メモリ (RAM概算): 例「8 GB」…ブラウザが概算で報告する端末の搭載メモリ。実際の値とは異なる場合があります。<br>
+				※ 回線種別 (ブラウザ推定): 例「4g / 10 Mbps / RTT 50 ms」…接続品質 / 推定帯域 / 推定往復遅延。ブラウザが過去の通信から推定した参考値です。
+			</div>
+		</section>
+		<section class="ref-table">
+			<div class="specs-title">参考指標</div>
+			<table>
+				<thead>
+					<tr>
+						<th>指標</th>
+						<th><span class="dot dot-ok"></span>良好</th>
+						<th><span class="dot dot-warn"></span>普通</th>
+						<th><span class="dot dot-err"></span>要注意</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td><strong>Download</strong></td>
+						<td>100 Mbps 以上</td>
+						<td>30 〜 100 Mbps</td>
+						<td>30 Mbps 未満</td>
+					</tr>
+					<tr>
+						<td><strong>Latency (RTT)</strong></td>
+						<td>10 ms 以下</td>
+						<td>10 〜 50 ms</td>
+						<td>50 ms 超</td>
+					</tr>
+					<tr>
+						<td><strong>Jitter</strong></td>
+						<td>5 ms 以下</td>
+						<td>5 〜 20 ms</td>
+						<td>20 ms 超</td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="ref-note">
+				<p><strong>※ 上記基準の根拠</strong></p>
+				<ul>
+					<li><strong>Download</strong> — 総務省「令和5年 通信利用動向調査」によれば固定ブロードバンドの平均実測速度は約 100〜300 Mbps であり、社内 LAN (1 GbE) では 100 Mbps 以上が快適な基準となります。IEEE 802.3ab (1000BASE-T) の理論値 1 Gbps に対し、実効スループットは 30〜70% 程度が一般的です。</li>
+					<li><strong>Latency (RTT)</strong> — Cisco の QoS 設計ガイドでは、インタラクティブ通信の推奨 RTT は 150 ms 以下、社内 LAN では通常 1〜5 ms 程度です。ITU-T G.114 勧告では片道 150 ms (往復 300 ms) を音声品質の上限としています。10 ms 以下を「優秀」としたのは、同一セグメント内 LAN の典型値に基づきます。</li>
+					<li><strong>Jitter</strong> — Cisco および ITU-T Y.1541 では、VoIP の許容ジッターは 30 ms 以下を推奨しています。社内ネットワークでは 5 ms 以下が安定とみなされ、ビデオ会議等のリアルタイム通信でも問題が生じない水準です。</li>
+				</ul>
+				<p>出典: ITU-T G.114 / Y.1541, Cisco QoS Design Guide, IEEE 802.3ab, 総務省 「令和5年 通信利用動向調査」</p>
+			</div>
+		</section>
+		<details class="guide">
+			<summary>【追加調査】tracert による通信経路トレース</summary>
+			<div class="guide-body">
+				<h3>1. tracert とは</h3>
+				<p>クライアント PC からサーバーまでの通信経路上にある各ルーター（ホップ）を特定し、各区間の応答時間を表示するコマンドです。ネットワーク遅延のボトルネック箇所を切り分ける際に使用します。</p>
+
+				<h3>2. 実行方法</h3>
+				<p>Windows の <strong>コマンドプロンプト</strong> または <strong>PowerShell</strong> を開き、以下を実行してください。</p>
+				<pre>tracert &lt;サーバーのホスト名 or IPアドレス&gt;
+
+例:
+tracert 192.168.1.100
+tracert aras-server.local</pre>
+
+				<h3>3. 出力の読み方</h3>
+				<pre>  1     1 ms    &lt;1 ms    &lt;1 ms   192.168.1.1      ← デフォルトゲートウェイ (自席のルーター)
+  2     2 ms     1 ms     2 ms   10.0.0.1         ← コアスイッチ / L3スイッチ
+  3     3 ms     3 ms     2 ms   10.0.1.1         ← サーバーセグメントのルーター
+  4     4 ms     3 ms     3 ms   192.168.1.100    ← 宛先サーバー</pre>
+				<ol>
+					<li><strong>左端の番号</strong> — ホップ番号（経由するルーターの順番）</li>
+					<li><strong>3つの時間 (ms)</strong> — そのホップまでの往復時間を3回計測した値。数値が大きいほど遅延が大きい</li>
+					<li><strong>右端の IP / ホスト名</strong> — 経由しているネットワーク機器のアドレス</li>
+				</ol>
+
+				<h3>4. 結果の判断基準</h3>
+				<ul>
+					<li><strong>特定ホップだけ急に遅延が増加</strong> → その区間のネットワーク機器・回線に問題がある可能性</li>
+					<li><strong>* * * (タイムアウト)</strong> が表示される → その機器が ICMP 応答を無効化している場合が多く、必ずしも障害ではない</li>
+					<li><strong>最終ホップに到達しない</strong> → ファイアウォール等でブロックされている、またはサーバーがダウンしている可能性</li>
+					<li><strong>社内 LAN で全ホップ 5 ms 以下</strong> → 正常な範囲</li>
+				</ul>
+				<div class="tip" style="margin-top: 12px;">
+					<p style="margin: 0 0 6px;"><strong>※ 上記基準の根拠</strong></p>
+					<ul style="margin: 0; padding-left: 1.4em; font-size: 12px; line-height: 1.7;">
+						<li><strong>ホップ間遅延の急増</strong> — RFC 2151「A Primer On Internet and TCP/IP Tools and Utilities」では、traceroute の各ホップ間 RTT の急増を「ボトルネック候補」として注目すべきと記述されています。Cisco のトラブルシューティングガイドでも、前ホップとの差分が 30 ms 以上ある場合にそのセグメントを重点調査対象としています。</li>
+						<li><strong>* * * (タイムアウト)</strong> — RFC 1812「Requirements for IP Version 4 Routers」§4.3.2.8 では、ルーターが ICMP Time Exceeded メッセージの送信をレート制限または無効化できると規定しており、タイムアウトが即障害を意味しない根拠となっています。多くの企業ネットワーク機器（Cisco, Juniper 等）はセキュリティポリシーにより ICMP 応答を抑制しています。</li>
+						<li><strong>最終ホップ未到達</strong> — Microsoft TechNet「Understanding Tracert」および Cisco「Using Traceroute to Troubleshoot」では、最終宛先に到達しないケースとして、ファイアウォールの ICMP フィルタリング、ACL によるブロック、またはホストダウンを主要原因として挙げています。</li>
+						<li><strong>社内 LAN 5 ms 以下</strong> — IEEE 802.3ab (1000BASE-T) の同一セグメント内スイッチング遅延は通常 10〜100 μs であり、複数ホップを経由しても社内 LAN 内では 1〜5 ms が標準的です。Cisco の Campus Network Design Guide では、アクセス層からコア層までの End-to-End 遅延が 5 ms 未満であることを推奨しています。ITU-T G.114 勧告の片道 150 ms 上限と比較しても十分に余裕がある水準です。</li>
+					</ul>
+					<p style="margin: 8px 0 0; font-size: 11.5px; color: var(--muted);">出典: RFC 1812, RFC 2151, Cisco Campus Network Design Guide, Cisco Troubleshooting Guide, IEEE 802.3ab, ITU-T G.114, Microsoft TechNet</p>
+				</div>
+
+				<h3>5. 追加オプション</h3>
+				<pre>tracert -d 192.168.1.100      DNSの逆引きを省略（高速化）
+tracert -h 15 192.168.1.100   最大ホップ数を15に制限（既定は30）
+tracert -w 1000 192.168.1.100 各ホップのタイムアウトを1000msに設定</pre>
+
+				<div class="tip">
+					<strong>ヒント:</strong> 本ページの計測結果と合わせて tracert の結果をネットワーク管理者へ共有すると、遅延箇所の特定がスムーズになります。結果はコマンドプロンプトで右クリック → 「すべて選択」→ Enter でコピーできます。
+				</div>
+			</div>
+		</details>
+
+		<div class="footer">Intranet Web Speed Test</div>
+	</main>
+
+	<script>
+		const CONFIG = {
+			warmupMs: 2000,
+			testDurationMs: 10000,
+			sampleIntervalMs: 250,
+			displaySmoothingWindow: 8,
+			parallelStreams: 4,
+			latencySamples: 6,
+			pingIntervalMs: 120,
+			candidateFiles: [
+				"100mb.bin",
+				"50mb.bin",
+				"20mb.bin"
+			]
+		};
+
+		const speedEl = document.getElementById("speed");
+		const statusEl = document.getElementById("status");
+		const startBtn = document.getElementById("startBtn");
+		const stopBtn = document.getElementById("stopBtn");
+		const downloadFinalEl = document.getElementById("downloadFinal");
+		const latencyEl = document.getElementById("latency");
+		const jitterEl = document.getElementById("jitter");
+		const specCpuEl = document.getElementById("specCpu");
+		const specMemoryEl = document.getElementById("specMemory");
+		const specPlatformEl = document.getElementById("specPlatform");
+		const specBrowserEl = document.getElementById("specBrowser");
+		const specLanguageEl = document.getElementById("specLanguage");
+		const specScreenEl = document.getElementById("specScreen");
+		const specNetworkEl = document.getElementById("specNetwork");
+		const specTimezoneEl = document.getElementById("specTimezone");
+
+		let activeControllers = [];
+		let running = false;
+
+		function formatMbps(bytes, elapsedMs) {
+			if (!elapsedMs) return 0;
+			return (bytes * 8) / (elapsedMs / 1000) / 1_000_000;
+		}
+
+		function mean(values) {
+			return values.reduce((sum, value) => sum + value, 0) / values.length;
+		}
+
+		function median(values) {
+			if (!values.length) return 0;
+			const sorted = [...values].sort((left, right) => left - right);
+			const center = Math.floor(sorted.length / 2);
+			return sorted.length % 2 === 0
+				? (sorted[center - 1] + sorted[center]) / 2
+				: sorted[center];
+		}
+
+		function stdDev(values) {
+			if (values.length < 2) return 0;
+			const avg = mean(values);
+			const variance = values.reduce((sum, value) => sum + ((value - avg) ** 2), 0) / (values.length - 1);
+			return Math.sqrt(variance);
+		}
+
+		function setStatus(text, cls = "") {
+			statusEl.className = `status ${cls}`.trim();
+			statusEl.textContent = text;
+		}
+
+		function safeSet(element, value) {
+			element.textContent = value || "-";
+		}
+
+		function getBrowserName() {
+			if (navigator.userAgentData && Array.isArray(navigator.userAgentData.brands)) {
+				return navigator.userAgentData.brands.map((brand) => `${brand.brand} ${brand.version}`).join(", ");
+			}
+
+			const ua = navigator.userAgent;
+			if (ua.includes("Edg/")) return "Microsoft Edge";
+			if (ua.includes("Chrome/")) return "Google Chrome";
+			if (ua.includes("Firefox/")) return "Mozilla Firefox";
+			if (ua.includes("Safari/") && !ua.includes("Chrome/")) return "Safari";
+			return "Unknown Browser";
+		}
+
+		function renderClientSpecs() {
+			const memory = navigator.deviceMemory ? `${navigator.deviceMemory} GB` : "Browser API 未対応";
+			const cpu = navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} cores` : "Browser API 未対応";
+			const platform = navigator.userAgentData?.platform || navigator.platform || "不明";
+			const browser = getBrowserName();
+			const language = navigator.language || "不明";
+			const screen = `${window.screen.width} x ${window.screen.height}`;
+			const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "不明";
+
+			let network = "Browser API 未対応";
+			if (navigator.connection) {
+				const conn = navigator.connection;
+				const parts = [];
+				if (conn.effectiveType) parts.push(conn.effectiveType);
+				if (typeof conn.downlink === "number") parts.push(`${conn.downlink} Mbps`);
+				if (typeof conn.rtt === "number") parts.push(`RTT ${conn.rtt} ms`);
+				network = parts.length > 0 ? parts.join(" / ") : "取得不可";
+			}
+
+			safeSet(specCpuEl, cpu);
+			safeSet(specMemoryEl, memory);
+			safeSet(specPlatformEl, platform);
+			safeSet(specBrowserEl, browser);
+			safeSet(specLanguageEl, language);
+			safeSet(specScreenEl, screen);
+			safeSet(specNetworkEl, network);
+			safeSet(specTimezoneEl, timezone);
+		}
+
+		const downloadBadgeEl = document.getElementById("downloadBadge");
+		const latencyBadgeEl = document.getElementById("latencyBadge");
+		const jitterBadgeEl = document.getElementById("jitterBadge");
+
+		function rateDownload(mbps) {
+			if (mbps >= 100) return { cls: "good", text: "\u25cf 快適" };
+			if (mbps >= 30)  return { cls: "fair", text: "\u25cf 普通" };
+			return { cls: "poor", text: "\u25cf 低速" };
+		}
+
+		function rateLatency(ms) {
+			if (ms <= 10)  return { cls: "good", text: "\u25cf 優秀" };
+			if (ms <= 50)  return { cls: "fair", text: "\u25cf 普通" };
+			return { cls: "poor", text: "\u25cf 遅い" };
+		}
+
+		function rateJitter(ms) {
+			if (ms <= 5)   return { cls: "good", text: "\u25cf 安定" };
+			if (ms <= 20)  return { cls: "fair", text: "\u25cf やや不安定" };
+			return { cls: "poor", text: "\u25cf 不安定" };
+		}
+
+		function setBadge(el, rating) {
+			el.innerHTML = `<span class="badge ${rating.cls}">${rating.text}</span>`;
+		}
+
+		function clearBadges() {
+			downloadBadgeEl.innerHTML = "";
+			latencyBadgeEl.innerHTML = "";
+			jitterBadgeEl.innerHTML = "";
+		}
+
+		function resetUiForRun() {
+			speedEl.textContent = "0.00";
+			speedEl.classList.add("measuring");
+			startBtn.classList.add("running");
+			downloadFinalEl.textContent = "-";
+			latencyEl.textContent = "-";
+			jitterEl.textContent = "-";
+			clearBadges();
+			setStatus("初期化中...");
+		}
+
+		async function checkCandidate(path) {
+			const url = `${path}?probe=${Date.now()}`;
+			const response = await fetch(url, { method: "HEAD", cache: "no-store" });
+			return response.ok;
+		}
+
+		async function resolveTestFile() {
+			for (const path of CONFIG.candidateFiles) {
+				try {
+					if (await checkCandidate(path)) return path;
+				} catch (_error) {
+				}
+			}
+			throw new Error("テスト用 .bin ファイルが見つかりません。同一ディレクトリに 20mb.bin / 50mb.bin / 100mb.bin を配置してください。");
+		}
+
+		async function measureLatency() {
+			const samples = [];
+			const target = `${location.pathname}?ping=1`;
+
+			for (let index = 0; index < CONFIG.latencySamples + 1; index += 1) {
+				const start = performance.now();
+				await fetch(`${target}&t=${Math.random()}`, { method: "HEAD", cache: "no-store" });
+				const end = performance.now();
+
+				if (index > 0) {
+					samples.push(end - start);
+				}
+
+				await new Promise((resolve) => setTimeout(resolve, CONFIG.pingIntervalMs));
+			}
+
+			return {
+				avg: mean(samples),
+				jitter: stdDev(samples)
+			};
+		}
+
+		async function consumeStream(url, endTime, byteCounter) {
+			while (running && performance.now() < endTime) {
+				const controller = new AbortController();
+				activeControllers.push(controller);
+				try {
+					const response = await fetch(`${url}?t=${Math.random()}`, {
+						method: "GET",
+						cache: "no-store",
+						signal: controller.signal
+					});
+
+					if (!response.ok || !response.body) {
+						throw new Error("データ取得に失敗しました。");
+					}
+
+					const reader = response.body.getReader();
+					while (running && performance.now() < endTime) {
+						const { done, value } = await reader.read();
+						if (done) break;
+						byteCounter.bytes += value.byteLength;
+					}
+
+					try {
+						await reader.cancel();
+					} catch (_error) {
+					}
+				} catch (error) {
+					if (error.name !== "AbortError") throw error;
+				} finally {
+					activeControllers = activeControllers.filter((active) => active !== controller);
+				}
+			}
+		}
+
+		async function measureDownload(url) {
+			const counter = { bytes: 0 };
+			const started = performance.now();
+			const warmupEndTime = started + CONFIG.warmupMs;
+			const endTime = warmupEndTime + CONFIG.testDurationMs;
+			const throughputSamples = [];
+			let previousBytes = 0;
+			let previousTime = started;
+
+			const workers = Array.from({ length: CONFIG.parallelStreams }, () => consumeStream(url, endTime, counter));
+
+			while (running && performance.now() < endTime) {
+				await new Promise((resolve) => setTimeout(resolve, CONFIG.sampleIntervalMs));
+				const now = performance.now();
+				const deltaBytes = counter.bytes - previousBytes;
+				const deltaMs = now - previousTime;
+
+				previousBytes = counter.bytes;
+				previousTime = now;
+
+				if (deltaMs <= 0) {
+					continue;
+				}
+
+				const instantMbps = formatMbps(deltaBytes, deltaMs);
+
+				if (now >= warmupEndTime) {
+					throughputSamples.push(instantMbps);
+					const recent = throughputSamples.slice(-CONFIG.displaySmoothingWindow);
+					const smoothed = median(recent);
+					speedEl.textContent = smoothed.toFixed(2);
+				}
+			}
+
+			await Promise.all(workers);
+
+			if (!throughputSamples.length) {
+				throw new Error("速度サンプルを取得できませんでした。計測時間を延長してください。");
+			}
+
+			return {
+				medianMbps: median(throughputSamples),
+				sampleCount: throughputSamples.length
+			};
+		}
+
+		function stopAll() {
+			running = false;
+			for (const controller of activeControllers) controller.abort();
+			activeControllers = [];
+			startBtn.disabled = false;
+			stopBtn.disabled = true;
+			speedEl.classList.remove("measuring");
+			startBtn.classList.remove("running");
+		}
+
+		async function runTest() {
+			running = true;
+			startBtn.disabled = true;
+			stopBtn.disabled = false;
+			resetUiForRun();
+
+			try {
+				setStatus("テストファイル確認中...");
+				const testFile = await resolveTestFile();
+
+				setStatus("遅延を測定中...");
+				const latency = await measureLatency();
+				latencyEl.textContent = `${latency.avg.toFixed(1)} ms`;
+				setBadge(latencyBadgeEl, rateLatency(latency.avg));
+				jitterEl.textContent = `${latency.jitter.toFixed(1)} ms`;
+				setBadge(jitterBadgeEl, rateJitter(latency.jitter));
+
+				setStatus("ダウンロード速度を測定中... (ウォームアップ 2 秒)");
+				const download = await measureDownload(testFile);
+				speedEl.textContent = download.medianMbps.toFixed(2);
+				downloadFinalEl.textContent = `${download.medianMbps.toFixed(2)} Mbps`;
+				setBadge(downloadBadgeEl, rateDownload(download.medianMbps));
+				setStatus("計測完了", "ok");
+			} catch (error) {
+				setStatus(error.message || "計測中にエラーが発生しました", "error");
+			} finally {
+				stopAll();
+			}
+		}
+
+		startBtn.addEventListener("click", () => {
+			if (!running) {
+				runTest();
+			}
+		});
+
+		stopBtn.addEventListener("click", () => {
+			setStatus("停止しました", "warn");
+			stopAll();
+		});
+
+		renderClientSpecs();
+	</script>
+</body>
+</html>

@@ -60,6 +60,12 @@ docs/00_video.mp4　に動画あり
 | Latency (RTT) | 10 ms 以下 | 10 〜 50 ms | 50 ms 超 |
 | Jitter | 5 ms 以下 | 5 〜 20 ms | 20 ms 超 |
 
+## Support
+
+このツールを気に入っていただけたら、GitHub Sponsors から支援していただけると幸いです。
+
+- [GitHub Sponsors: takamichikojima](https://github.com/sponsors/takamichikojima)
+
 ## ライセンス
 
 [MIT License](LICENSE)
